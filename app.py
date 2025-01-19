@@ -4,10 +4,22 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
+# Cabeçalho com o User-Agent para simular um navegador
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+}
+
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = "https://animesonlinecc.to/episodio/"
-    response = requests.get(url)
+    
+    # Faz a requisição com o User-Agent para evitar bloqueio
+    response = requests.get(url, headers=headers)
+    
+    # Verifica se a resposta foi bem sucedida
+    if response.status_code != 200:
+        return jsonify({"error": "Não foi possível obter os episódios."}), 500
+    
     soup = BeautifulSoup(response.text, 'html.parser')
 
     episodes = []
@@ -16,6 +28,7 @@ def episodes_api():
         episode_url = episode.find('a')['href']
         img_url = episode.find('img')['src']
 
+        # Modificando URLs para utilizar o proxy
         img_url = img_url.replace("https://animesonlinecc.to/", "")
         proxy_img_url = f"{request.url_root}image/{img_url}"
 
@@ -33,7 +46,9 @@ def episodes_api():
 @app.route('/episodio/<path:episode_path>')
 def episode_proxy(episode_path):
     original_url = f"https://animesonlinecc.to/{episode_path}"
-    response = requests.get(original_url)
+    response = requests.get(original_url, headers=headers)
+    
+    # Verifica se o episódio existe
     if response.status_code == 200:
         return redirect(original_url)
     else:
@@ -42,10 +57,14 @@ def episode_proxy(episode_path):
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
     original_url = f"https://animesonlinecc.to/{image_path}"
-    response = requests.get(original_url)
+    response = requests.get(original_url, headers=headers)
+    
+    # Verifica se a imagem existe
     if response.status_code != 200:
         return jsonify({"error": "Imagem não encontrada."}), 404
+    
     return Response(response.content, content_type=response.headers.get('Content-Type', 'image/jpeg'))
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
