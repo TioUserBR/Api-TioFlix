@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 
 # URL do FlareSolverr, altere para a URL onde o FlareSolverr está rodando
-FLARE_SOLVERR_URL = "http://127.0.0.1:8191/v1"
+FLARE_SOLVERR_URL = "https://api-animes-free.vercel.app/v1"
 
 def flare_solverr_request(url):
     """Função que usa FlareSolverr para resolver o Cloudflare"""
