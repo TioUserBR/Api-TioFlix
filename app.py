@@ -44,7 +44,7 @@ def episodes_api():
 
 @app.route('/e/<path:episode_path>', methods=['GET'])
 def episode_details(episode_path):
-    original_url = f"{BASE_URL}{episode_path}"
+    original_url = f"{BASE_URL}e/{episode_path}"
     response = requests.get(original_url, headers=HEADERS)
 
     if response.status_code != 200:
