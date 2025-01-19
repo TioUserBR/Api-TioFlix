@@ -1,25 +1,24 @@
 from flask import Flask, jsonify, request, redirect, Response
 import cfscrape
 from bs4 import BeautifulSoup
-from urllib.parse import quote  # Para codificar a URL corretamente
+from urllib.parse import quote  # Substituído aqui
 
 app = Flask(__name__)
 
-# Cria um objeto de scraper
 scraper = cfscrape.create_scraper()
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = "https://animesonlinecc.to/episodio/"
-    response = scraper.get(url)  # Usando cfscrape para contornar o Cloudflare
-
-    if response.status_code != 200:
-        return jsonify({"error": "Não foi possível obter os episódios."}), 500
+    try:
+        response = scraper.get(url)
+        response.raise_for_status()  # Levanta um erro se o status não for 200
+    except Exception as e:
+        return jsonify({"error": f"Erro ao obter os episódios: {str(e)}"}), 500
 
     soup = BeautifulSoup(response.text, 'html.parser')
     episodes = []
     
-    # Limitar a 10 episódios
     for episode in soup.find_all('article', class_='item se episodes')[:10]:
         title = episode.find('h3').text.strip()
         episode_url = episode.find('a')['href']
@@ -42,20 +41,26 @@ def episodes_api():
 @app.route('/episodio/<path:episode_path>')
 def episode_proxy(episode_path):
     original_url = f"https://animesonlinecc.to/{episode_path}"
-    response = scraper.get(original_url)  # Usando cfscrape aqui também
-    
-    # Verifica se o episódio existe
+    try:
+        response = scraper.get(original_url)
+        response.raise_for_status()
+    except Exception as e:
+        return jsonify({"error": f"Erro ao acessar o episódio: {str(e)}"}), 500
+
     if response.status_code == 200:
         return redirect(original_url)
     else:
-        return "Episódio não encontrado", 404
+        return jsonify({"error": "Episódio não encontrado"}), 404
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
     original_url = f"https://animesonlinecc.to/{image_path}"
-    response = scraper.get(original_url)  # Usando cfscrape aqui também
-    
-    # Verifica se a imagem existe
+    try:
+        response = scraper.get(original_url)
+        response.raise_for_status()
+    except Exception as e:
+        return jsonify({"error": f"Erro ao acessar a imagem: {str(e)}"}), 500
+
     if response.status_code != 200:
         return jsonify({"error": "Imagem não encontrada."}), 404
     
