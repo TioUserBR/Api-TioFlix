@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, redirect, Response
 import requests
 from bs4 import BeautifulSoup
 import json
+from urllib.parse import quote
 
 app = Flask(__name__)
 
