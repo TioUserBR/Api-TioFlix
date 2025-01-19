@@ -15,12 +15,10 @@ headers = {
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = "https://animesonlinecc.to/episodio/"
-    # Usando ZenRows para contornar Cloudflare
     response = requests.get(ZENROWS_URL, params={'url': url}, headers=headers)
     
-    # Verifique o status da resposta
     if response.status_code != 200:
-        return jsonify({"error": "Não foi possível obter os episódios."}), 500
+        return jsonify({"error": f"Não foi possível obter os episódios. Status Code: {response.status_code}, Response: {response.text}"}), 500
 
     soup = BeautifulSoup(response.text, 'html.parser')
     episodes = []
