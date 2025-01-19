@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 ZENROWS_API_KEY = "901af1dd0d50ecb4fec4c368801899ac74e42712"
-ZENROWS_URL = "https://api.zenrows.com/v1"
+ZENROWS_URL = "https://animesonlinecc.to/episodio/"
 
 # Cabeçalho para a requisição ZenRows
 headers = {
