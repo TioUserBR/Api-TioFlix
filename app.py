@@ -4,51 +4,48 @@ from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-ZENROWS_API_KEY = "901af1dd0d50ecb4fec4c368801899ac74e42712"
-ZENROWS_URL = "https://q1n.net/"
-
-# Cabeçalho para a requisição ZenRows
-headers = {
-    'Authorization': f'Bearer {ZENROWS_API_KEY}',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
+BASE_URL = "https://q1n.net/"
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
-    url = "https://q1n.net/e/"
-    response = requests.get(ZENROWS_URL, params={'url': url}, headers=headers)
+    url = f"{BASE_URL}e/"
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     
     if response.status_code != 200:
         return jsonify({"error": f"Não foi possível obter os episódios. Status Code: {response.status_code}, Response: {response.text}"}), 500
 
     soup = BeautifulSoup(response.text, 'html.parser')
     episodes = []
-    for episode in soup.find_all('article', class_='item se episodes')[:10]:  # Limite de 10 itens
-        title = episode.find('h3').text.strip()
-        episode_url = episode.find('a')['href']
-        img_url = episode.find('img')['src']
+    
+    content = soup.find('div', class_='content right full')
+    if content:
+        archive = content.find('div', id='archive-content')
+        if archive:
+            for episode in archive.find_all('article', class_='item se episodes')[:10]:  # Limite de 10 itens
+                title = episode.find('h3').text.strip()
+                episode_url = episode.find('a')['href']
+                img_tag = episode.find('img')
+                img_url = img_tag['src'] if img_tag else None
 
-        img_url = img_url.replace("https://q1n.net/e/", "")
-        proxy_img_url = f"{request.url_root}image/{img_url}"
+                quality = episode.find('span', class_='quality').text.strip() if episode.find('span', class_='quality') else 'N/A'
 
-        episode_url = episode_url.replace("https://q1n.net/e/", "")
-        proxy_episode_url = f"{request.url_root}{episode_url}"
+                proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
+                proxy_episode_url = f"{request.url_root}{episode_url.replace(BASE_URL, '')}"
 
-        episodes.append({
-            'title': title,
-            'url': proxy_episode_url,
-            'image': proxy_img_url
-        })
+                episodes.append({
+                    'title': title,
+                    'url': proxy_episode_url,
+                    'image': proxy_img_url,
+                    'quality': quality
+                })
 
     return jsonify(episodes)
 
 @app.route('/episodio/<path:episode_path>')
 def episode_proxy(episode_path):
-    original_url = f"https://q1n.net/e/{episode_path}"
-    # Usando ZenRows para proxy de episódios
-    response = requests.get(ZENROWS_URL, params={'url': original_url}, headers=headers)
+    original_url = f"{BASE_URL}e/{episode_path}"
+    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
-    # Verifica se o episódio existe
     if response.status_code == 200:
         return redirect(original_url)
     else:
@@ -56,11 +53,9 @@ def episode_proxy(episode_path):
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
-    original_url = f"https://q1n.net/e/{image_path}"
-    # Usando ZenRows para proxy de imagem
-    response = requests.get(ZENROWS_URL, params={'url': original_url}, headers=headers)
+    original_url = f"{BASE_URL}e/{image_path}"
+    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
-    # Verifica se a imagem existe
     if response.status_code != 200:
         return jsonify({"error": "Imagem não encontrada."}), 404
 
