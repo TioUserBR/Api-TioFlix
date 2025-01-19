@@ -15,7 +15,7 @@ headers = {
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
-    url = "https://q1n.net/episodio/"
+    url = "https://q1n.net/e/"
     response = requests.get(ZENROWS_URL, params={'url': url}, headers=headers)
     
     if response.status_code != 200:
