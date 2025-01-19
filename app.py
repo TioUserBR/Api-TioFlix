@@ -40,17 +40,46 @@ def episodes_api():
                 })
 
     return jsonify(episodes)
-
-@app.route('/e/<path:episode_path>')
-def episode_proxy(episode_path):
-    original_url = f"{BASE_URL}e/{episode_path}"
+    
+@app.route('/e/<path:episode_path>', methods=['GET'])
+def episode_details(episode_path):
+    original_url = f"{BASE_URL}{episode_path}"
     response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
-    if response.status_code == 200:
-        return redirect(original_url)
-    else:
-        return "Episódio não encontrado", 404
+    if response.status_code != 200:
+        return jsonify({"error": "Episódio não encontrado."}), 404
 
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Extrair gêneros
+    genres_div = soup.find('div', class_='sgeneros')
+    genres = [a.text.strip() for a in genres_div.find_all('a')] if genres_div else []
+
+    # Extrair imagem do poster
+    poster_img = None
+    poster_div = soup.find('div', class_='poster')
+    if poster_div and poster_div.find('img'):
+        poster_img = poster_div.find('img')['src']
+
+    # Extrair título
+    title = soup.find('span', id='titleHis').text.strip() if soup.find('span', id='titleHis') else None
+
+    # Extrair thumb
+    thumb = soup.find('span', id='thumbHis')['data-src'] if soup.find('span', id='thumbHis') else None
+
+    # Extrair sinopse
+    synopsis_div = soup.find('div', class_='synopsis')
+    synopsis = synopsis_div.text.strip() if synopsis_div else None
+
+    # Retornar os dados no formato JSON
+    return jsonify({
+        "title": title,
+        "image": poster_img,
+        "thumb": thumb,
+        "genres": genres,
+        "synopsis": synopsis
+    })
+    
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
     original_url = f"{BASE_URL}e/{image_path}"
