@@ -12,23 +12,22 @@ headers = {
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = "https://animesonlinecc.to/episodio/"
-    
-    # Faz a requisição com o User-Agent para evitar bloqueio
     response = requests.get(url, headers=headers)
-    
-    # Verifica se a resposta foi bem sucedida
+
+    # Imprima a resposta para depuração
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Text: {response.text[:500]}")  # Apenas os primeiros 500 caracteres
+
     if response.status_code != 200:
         return jsonify({"error": "Não foi possível obter os episódios."}), 500
-    
-    soup = BeautifulSoup(response.text, 'html.parser')
 
+    soup = BeautifulSoup(response.text, 'html.parser')
     episodes = []
     for episode in soup.find_all('article', class_='item se episodes'):
         title = episode.find('h3').text.strip()
         episode_url = episode.find('a')['href']
         img_url = episode.find('img')['src']
 
-        # Modificando URLs para utilizar o proxy
         img_url = img_url.replace("https://animesonlinecc.to/", "")
         proxy_img_url = f"{request.url_root}image/{img_url}"
 
