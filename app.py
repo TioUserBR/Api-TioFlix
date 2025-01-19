@@ -1,31 +1,18 @@
 from flask import Flask, jsonify, request, redirect, Response
-import requests
+import cfscrape
 from bs4 import BeautifulSoup
-import random
 
 app = Flask(__name__)
 
-# Lista de User-Agents
-user_agents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edge/91.0.864.64',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0',
-    'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-]
+# Cria o objeto cfscrape para lidar com o Cloudflare
+scraper = cfscrape.create_scraper()
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = "https://animesonlinecc.to/episodio/"
     
-    # Seleciona aleatoriamente um User-Agent da lista
-    headers = {
-        'User-Agent': random.choice(user_agents)
-    }
-    
-    # Realiza a requisição com cabeçalho de User-Agent
-    response = requests.get(url, headers=headers)
+    # Faz a requisição usando cfscrape, que lida com o Cloudflare
+    response = scraper.get(url)
 
     # Imprime a resposta para depuração
     print(f"Status Code: {response.status_code}")
@@ -67,13 +54,8 @@ def episode_proxy(episode_path):
     # URL original do episódio
     original_url = f"https://animesonlinecc.to/{episode_path}"
     
-    # Seleciona aleatoriamente um User-Agent da lista
-    headers = {
-        'User-Agent': random.choice(user_agents)
-    }
-    
-    # Realiza a requisição para o episódio com cabeçalho de User-Agent
-    response = requests.get(original_url, headers=headers)
+    # Faz a requisição para o episódio usando cfscrape
+    response = scraper.get(original_url)
     
     # Verifica se o episódio foi encontrado
     if response.status_code == 200:
@@ -86,13 +68,8 @@ def image_proxy(image_path):
     # URL original da imagem
     original_url = f"https://animesonlinecc.to/{image_path}"
     
-    # Seleciona aleatoriamente um User-Agent da lista
-    headers = {
-        'User-Agent': random.choice(user_agents)
-    }
-    
-    # Realiza a requisição para a imagem com cabeçalho de User-Agent
-    response = requests.get(original_url, headers=headers)
+    # Faz a requisição para a imagem usando cfscrape
+    response = scraper.get(original_url)
     
     # Verifica se a imagem foi encontrada
     if response.status_code != 200:
