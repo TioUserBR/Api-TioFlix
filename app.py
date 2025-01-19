@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 app = Flask(__name__)
 
 ZENROWS_API_KEY = "901af1dd0d50ecb4fec4c368801899ac74e42712"
-ZENROWS_URL = "https://animesonlinecc.to/"
+ZENROWS_URL = "https://q1n.net/"
 
 # Cabeçalho para a requisição ZenRows
 headers = {
@@ -15,7 +15,7 @@ headers = {
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
-    url = "https://animesonlinecc.to/episodio/"
+    url = "https://q1n.net/episodio/"
     response = requests.get(ZENROWS_URL, params={'url': url}, headers=headers)
     
     if response.status_code != 200:
