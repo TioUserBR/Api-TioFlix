@@ -28,10 +28,10 @@ def episodes_api():
         episode_url = episode.find('a')['href']
         img_url = episode.find('img')['src']
 
-        img_url = img_url.replace("https://animesonlinecc.to/", "")
+        img_url = img_url.replace("https://q1n.net/e/", "")
         proxy_img_url = f"{request.url_root}image/{img_url}"
 
-        episode_url = episode_url.replace("https://animesonlinecc.to/", "")
+        episode_url = episode_url.replace("https://q1n.net/e/", "")
         proxy_episode_url = f"{request.url_root}{episode_url}"
 
         episodes.append({
@@ -44,7 +44,7 @@ def episodes_api():
 
 @app.route('/episodio/<path:episode_path>')
 def episode_proxy(episode_path):
-    original_url = f"https://animesonlinecc.to/{episode_path}"
+    original_url = f"https://q1n.net/e/{episode_path}"
     # Usando ZenRows para proxy de episódios
     response = requests.get(ZENROWS_URL, params={'url': original_url}, headers=headers)
 
@@ -56,7 +56,7 @@ def episode_proxy(episode_path):
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
-    original_url = f"https://animesonlinecc.to/{image_path}"
+    original_url = f"https://q1n.net/e/{image_path}"
     # Usando ZenRows para proxy de imagem
     response = requests.get(ZENROWS_URL, params={'url': original_url}, headers=headers)
 
