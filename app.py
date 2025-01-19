@@ -41,7 +41,7 @@ def episodes_api():
 
     return jsonify(episodes)
 
-@app.route('/episodio/<path:episode_path>')
+@app.route('/e/<path:episode_path>')
 def episode_proxy(episode_path):
     original_url = f"{BASE_URL}e/{episode_path}"
     response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
