@@ -1,15 +1,16 @@
-from flask import Flask, jsonify, request, redirect, Response
+from flask import Flask, jsonify, request, Response
 import requests
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 BASE_URL = "https://q1n.net/"
+HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 @app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = f"{BASE_URL}e/"
-    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    response = requests.get(url, headers=HEADERS)
     
     if response.status_code != 200:
         return jsonify({"error": f"Não foi possível obter os episódios. Status Code: {response.status_code}, Response: {response.text}"}), 500
@@ -40,11 +41,11 @@ def episodes_api():
                 })
 
     return jsonify(episodes)
-    
+
 @app.route('/e/<path:episode_path>', methods=['GET'])
 def episode_details(episode_path):
     original_url = f"{BASE_URL}{episode_path}"
-    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
+    response = requests.get(original_url, headers=HEADERS)
 
     if response.status_code != 200:
         return jsonify({"error": "Episódio não encontrado."}), 404
@@ -79,17 +80,18 @@ def episode_details(episode_path):
         "genres": genres,
         "synopsis": synopsis
     })
-    
+
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
-    original_url = f"{BASE_URL}e/{image_path}"
-    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
+    original_url = f"{BASE_URL}{image_path}"
+    response = requests.get(original_url, headers=HEADERS)
 
     if response.status_code != 200:
         return jsonify({"error": "Imagem não encontrada."}), 404
 
-    return Response(response.content, content_type=response.headers.get('Content-Type', 'image/jpeg'))
+    content_type = response.headers.get('Content-Type', 'image/jpeg')  # Default para 'image/jpeg'
+    return Response(response.content, content_type=content_type)
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
+     
