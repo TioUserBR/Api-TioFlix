@@ -121,7 +121,7 @@ def calendario():
 @app.route('/api/info/<path:show_path>', methods=['GET'])
 def show_info(show_path):
     # Montar a URL original
-    original_url = f"{BASE_URL}{show_path}"
+    original_url = f"{BASE_URL}{show_path}a/"
     response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
     # Verificar se a resposta é válida
@@ -130,7 +130,6 @@ def show_info(show_path):
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Extrair informações do HTML
     # 1. Imagem do poster
     poster_div = soup.find('div', class_='poster')
     poster_img = poster_div.find('img')['src'] if poster_div and poster_div.find('img') else None
@@ -153,7 +152,7 @@ def show_info(show_path):
     synopsis_div = soup.find('div', class_='wp-content')
     synopsis = synopsis_div.text.strip() if synopsis_div else None
 
-    # 7. Episódios
+    # 7. Episódios - Puxando todos os episódios
     episodes = []
     episodes_div = soup.find('div', id='serie_contenido')
     if episodes_div:
@@ -165,15 +164,17 @@ def show_info(show_path):
                 episode_url = episode.find('a')['href']
                 episode_number = episode.find('div', class_='numerando').text.strip()
                 episode_image = episode.find('img')['src'] if episode.find('img') else None
+                episode_date = episode.find('span', class_='date').text.strip() if episode.find('span', class_='date') else None
                 episodes.append({
                     'episode_title': episode_title,
                     'episode_url': episode_url,
                     'episode_number': episode_number,
-                    'image': episode_image
+                    'image': episode_image,
+                    'episode_date': episode_date
                 })
 
-    # Retornar os dados no formato JSON
-    return jsonify({
+    # Organizar os dados na ordem desejada (nome, capa, sinopse, etc., e episódios no final)
+    show_data = {
         "title": title,
         "poster": poster_img,
         "release_date": release_date,
@@ -181,8 +182,11 @@ def show_info(show_path):
         "rating_value": rating_value,
         "rating_count": rating_count,
         "synopsis": synopsis,
-        "episodes": episodes
-    })
+        "episodes": episodes  # Episódios são os últimos do JSON
+    }
+
+    # Retornar os dados no formato JSON
+    return jsonify(show_data)
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
