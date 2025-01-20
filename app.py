@@ -106,7 +106,7 @@ def calendario():
 
         # Criar links camuflados
         proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
-        proxy_show_url = f"{request.url_root}e/{show_url.replace(BASE_URL, '')}" if show_url else None
+        proxy_show_url = f"{request.url_root}api/infor/{show_url.replace(BASE_URL, '')}" if show_url else None
 
         shows.append({
             "title": title,
@@ -118,16 +118,49 @@ def calendario():
 
     return jsonify(shows)
 
-@app.route('/show/<path:show_path>', methods=['GET'])
-def show_proxy(show_path):
+@app.route('/api/infor/<path:show_path>', methods=['GET'])
+def show_information(show_path):
     original_url = f"{BASE_URL}{show_path}"
     response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
     if response.status_code != 200:
         return jsonify({"error": "Conteúdo não encontrado."}), 404
 
-    return Response(response.content, content_type=response.headers.get('Content-Type'))
+    soup = BeautifulSoup(response.text, 'html.parser')
 
+    # Extrair informações do HTML
+    poster_img = None
+    poster_div = soup.find('div', class_='poster')
+    if poster_div and poster_div.find('img'):
+        poster_img = poster_div.find('img')['src']
+
+    title = soup.find('h1').text.strip() if soup.find('h1') else None
+    subtitle = soup.find('span', itemprop='dateCreated').text.strip() if soup.find('span', itemprop='dateCreated') else None
+
+    # Extrair gêneros
+    genres_div = soup.find('div', class_='sgeneros')
+    genres = [a.text.strip() for a in genres_div.find_all('a')] if genres_div else []
+
+    # Extrair avaliação
+    rating_value = soup.find('span', class_='rating-value').text.strip() if soup.find('span', class_='rating-value') else None
+    rating_count = soup.find('span', class_='rating-count').text.strip() if soup.find('span', class_='rating-count') else None
+
+    # Extrair sinopse
+    synopsis_div = soup.find('div', class_='wp-content')
+    synopsis = synopsis_div.text.strip() if synopsis_div else None
+
+    # Retornar informações no formato JSON
+    return jsonify({
+        "title": title,
+        "subtitle": subtitle,
+        "image": poster_img,
+        "genres": genres,
+        "rating": {
+            "value": rating_value,
+            "votes": rating_count
+        },
+        "synopsis": synopsis
+    })
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
