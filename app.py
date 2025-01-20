@@ -31,7 +31,7 @@ def episodes_api():
 
                 quality = episode.find('span', class_='quality').text.strip() if episode.find('span', class_='quality') else 'N/A'
 
-                proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
+                proxy_img_url = f"{request.url_root}/api/image/{img_url.replace(BASE_URL, '')}" if img_url else None
                 proxy_episode_url = f"{request.url_root}{episode_url.replace(BASE_URL, '')}"
 
                 episodes.append({
@@ -44,7 +44,7 @@ def episodes_api():
 
     return jsonify(episodes)
 
-@app.route('/e/<path:episode_path>', methods=['GET'])
+@app.route('/api/e/<path:episode_path>', methods=['GET'])
 def episode_details(episode_path):
     original_url = f"{BASE_URL}e/{episode_path}"
     response = requests.get(original_url, headers=HEADERS)
@@ -83,7 +83,7 @@ def episode_details(episode_path):
         "synopsis": synopsis
     })
 
-@app.route('/calendario', methods=['GET'])
+@app.route('/api/calendario', methods=['GET'])
 def calendario():
     url = f"{BASE_URL}calendario/"
     response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -105,7 +105,7 @@ def calendario():
         show_url = item.find('a')['href'] if item.find('a') else None
 
         # Criar links camuflados
-        proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
+        proxy_img_url = f"{request.url_root}/api/image/{img_url.replace(BASE_URL, '')}" if img_url else None
         proxy_show_url = f"{request.url_root}api/info/{show_url.replace(BASE_URL, '')}" if show_url else None
 
         shows.append({
@@ -214,7 +214,7 @@ def get_episodes(show_path):
     return episodes
 
 
-@app.route('/image/<path:image_path>')
+@app.route('/api/image/<path:image_path>')
 def image_proxy(image_path):
     original_url = f"{BASE_URL}{image_path}"
     response = requests.get(original_url, headers=HEADERS)
