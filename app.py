@@ -36,7 +36,7 @@ def episodes_api():
 
                 episodes.append({
                     'title': title,
-                    'alt': img_alt,
+                    'name': img_alt,
                     'url': proxy_episode_url,
                     'image': proxy_img_url,
                     'quality': quality
