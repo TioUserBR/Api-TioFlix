@@ -135,9 +135,8 @@ def show_info(show_path):
     poster_div = soup.find('div', class_='poster')
     poster_img = poster_div.find('img')['src'] if poster_div and poster_div.find('img') else None
 
-    # 2. Nome (do subtítulo)
-    name_div = soup.find('div', class_='data')
-    name = name_div.find('h1').text.strip() if name_div and name_div.find('h1') else None
+    # 2. Título (nome)
+    title = soup.find('div', class_='data').find('h1').text.strip() if soup.find('div', class_='data') else None
 
     # 3. Data de lançamento
     release_date = soup.find('span', class_='date').text.strip() if soup.find('span', class_='date') else None
@@ -154,17 +153,35 @@ def show_info(show_path):
     synopsis_div = soup.find('div', class_='wp-content')
     synopsis = synopsis_div.text.strip() if synopsis_div else None
 
+    # 7. Episódios
+    episodes = []
+    episodes_div = soup.find('div', id='serie_contenido')
+    if episodes_div:
+        seasons_div = episodes_div.find('div', id='seasons')
+        if seasons_div:
+            episodes_list = seasons_div.find_all('li', class_='mark-1')
+            for episode in episodes_list:
+                episode_title = episode.find('div', class_='episodiotitle').text.strip()
+                episode_url = episode.find('a')['href']
+                episode_number = episode.find('div', class_='numerando').text.strip()
+                episode_image = episode.find('img')['src'] if episode.find('img') else None
+                episodes.append({
+                    'episode_title': episode_title,
+                    'episode_url': episode_url,
+                    'episode_number': episode_number,
+                    'image': episode_image
+                })
+
     # Retornar os dados no formato JSON
     return jsonify({
-        "nome": name,
+        "title": title,
         "poster": poster_img,
         "release_date": release_date,
         "genres": genres,
-        "rating": {
-            "value": rating_value,
-            "count": rating_count
-        },
-        "synopsis": synopsis
+        "rating_value": rating_value,
+        "rating_count": rating_count,
+        "synopsis": synopsis,
+        "episodes": episodes
     })
 
 @app.route('/image/<path:image_path>')
