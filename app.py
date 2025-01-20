@@ -22,7 +22,7 @@ def episodes_api():
     if content:
         archive = content.find('div', id='archive-content')
         if archive:
-            for episode in archive.find_all('article', class_='item se episodes')[:10]:  # Limite de 10 itens
+            for episode in archive.find_all('article', class_='item se episodes')[:50]:  # Limite de 10 itens
                 title = episode.find('h3').text.strip()
                 episode_url = episode.find('a')['href']
                 img_tag = episode.find('img')
