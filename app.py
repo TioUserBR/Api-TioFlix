@@ -7,7 +7,7 @@ app = Flask(__name__)
 BASE_URL = "https://q1n.net/"
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
-@app.route('/api/episodes', methods=['GET'])
+@app.route('/api/newEpList', methods=['GET'])
 def episodes_api():
     url = f"{BASE_URL}e/"
     response = requests.get(url, headers=HEADERS)
