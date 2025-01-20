@@ -106,7 +106,7 @@ def calendario():
 
         # Criar links camuflados
         proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
-        proxy_show_url = f"{request.url_root}show/{show_url.replace(BASE_URL, '')}" if show_url else None
+        proxy_show_url = f"{request.url_root}/e/{show_url.replace(BASE_URL, '')}" if show_url else None
 
         shows.append({
             "title": title,
