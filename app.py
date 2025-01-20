@@ -152,7 +152,45 @@ def show_info(show_path):
     synopsis_div = soup.find('div', class_='wp-content')
     synopsis = synopsis_div.text.strip() if synopsis_div else None
 
-    # 7. Episódios - Puxando todos os episódios
+    # 7. Puxar a lista de episódios (chama a nova função para episódios)
+    episodes = get_episodes(show_path)
+
+    # Organizar os dados na ordem desejada
+    show_data = {
+        "title": title,
+        "poster": poster_img,
+        "release_date": release_date,
+        "genres": genres,
+        "rating_value": rating_value,
+        "rating_count": rating_count,
+        "synopsis": synopsis,
+        "episodes": episodes  # Episódios são os últimos do JSON
+    }
+
+    # Retornar os dados no formato JSON
+    return jsonify(show_data)
+
+
+@app.route('/api/eplist/<path:show_path>', methods=['GET'])
+def eplist(show_path):
+    # Chama a função que obtém os episódios
+    episodes = get_episodes(show_path)
+    
+    # Retornar a lista de episódios no formato JSON
+    return jsonify({"episodes": episodes})
+
+
+def get_episodes(show_path):
+    # Montar a URL original para pegar os episódios
+    original_url = f"{BASE_URL}{show_path}a/"
+    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
+
+    if response.status_code != 200:
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Puxando episódios
     episodes = []
     episodes_div = soup.find('div', id='serie_contenido')
     if episodes_div:
@@ -173,20 +211,8 @@ def show_info(show_path):
                     'episode_date': episode_date
                 })
 
-    # Organizar os dados na ordem desejada (nome, capa, sinopse, etc., e episódios no final)
-    show_data = {
-        "title": title,
-        "poster": poster_img,
-        "release_date": release_date,
-        "genres": genres,
-        "rating_value": rating_value,
-        "rating_count": rating_count,
-        "synopsis": synopsis,
-        "episodes": episodes  # Episódios são os últimos do JSON
-    }
+    return episodes
 
-    # Retornar os dados no formato JSON
-    return jsonify(show_data)
 
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
