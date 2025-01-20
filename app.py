@@ -106,7 +106,7 @@ def calendario():
 
         # Criar links camuflados
         proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
-        proxy_show_url = f"{request.url_root}api/infor/{show_url.replace(BASE_URL, '')}" if show_url else None
+        proxy_show_url = f"{request.url_root}api/info/{show_url.replace(BASE_URL, '')}" if show_url else None
 
         shows.append({
             "title": title,
@@ -118,46 +118,51 @@ def calendario():
 
     return jsonify(shows)
 
-@app.route('/api/infor/<path:show_path>', methods=['GET'])
-def show_information(show_path):
+@app.route('/api/info/<path:show_path>', methods=['GET'])
+def show_info(show_path):
+    # Montar a URL original
     original_url = f"{BASE_URL}{show_path}"
     response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
 
+    # Verificar se a resposta é válida
     if response.status_code != 200:
         return jsonify({"error": "Conteúdo não encontrado."}), 404
 
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # Extrair informações do HTML
-    poster_img = None
+    # 1. Imagem do poster
     poster_div = soup.find('div', class_='poster')
-    if poster_div and poster_div.find('img'):
-        poster_img = poster_div.find('img')['src']
+    poster_img = poster_div.find('img')['src'] if poster_div and poster_div.find('img') else None
 
-    title = soup.find('h1').text.strip() if soup.find('h1') else None
-    subtitle = soup.find('span', itemprop='dateCreated').text.strip() if soup.find('span', itemprop='dateCreated') else None
+    # 2. Nome (do subtítulo)
+    name_div = soup.find('div', class_='data')
+    name = name_div.find('h1').text.strip() if name_div and name_div.find('h1') else None
 
-    # Extrair gêneros
+    # 3. Data de lançamento
+    release_date = soup.find('span', class_='date').text.strip() if soup.find('span', class_='date') else None
+
+    # 4. Gêneros
     genres_div = soup.find('div', class_='sgeneros')
     genres = [a.text.strip() for a in genres_div.find_all('a')] if genres_div else []
 
-    # Extrair avaliação
+    # 5. Nota
     rating_value = soup.find('span', class_='rating-value').text.strip() if soup.find('span', class_='rating-value') else None
     rating_count = soup.find('span', class_='rating-count').text.strip() if soup.find('span', class_='rating-count') else None
 
-    # Extrair sinopse
+    # 6. Sinopse
     synopsis_div = soup.find('div', class_='wp-content')
     synopsis = synopsis_div.text.strip() if synopsis_div else None
 
-    # Retornar informações no formato JSON
+    # Retornar os dados no formato JSON
     return jsonify({
-        "title": title,
-        "subtitle": subtitle,
-        "image": poster_img,
+        "nome": name,
+        "poster": poster_img,
+        "release_date": release_date,
         "genres": genres,
         "rating": {
             "value": rating_value,
-            "votes": rating_count
+            "count": rating_count
         },
         "synopsis": synopsis
     })
