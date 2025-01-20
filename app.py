@@ -83,6 +83,52 @@ def episode_details(episode_path):
         "synopsis": synopsis
     })
 
+@app.route('/calendario', methods=['GET'])
+def calendario():
+    url = f"{BASE_URL}calendario/"
+    response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+
+    if response.status_code != 200:
+        return jsonify({"error": f"Não foi possível obter os dados do calendário. Status Code: {response.status_code}, Response: {response.text}"}), 500
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    shows = []
+
+    # Processar os elementos do calendário
+    for item in soup.find_all('article', class_='item tvshows'):
+        title = item.find('h3').text.strip() if item.find('h3') else None
+        year = item.find('span').text.strip() if item.find('span') else None
+
+        img_tag = item.find('img')
+        img_url = img_tag['src'] if img_tag else None
+        img_alt = img_tag['alt'] if img_tag and 'alt' in img_tag.attrs else None
+        show_url = item.find('a')['href'] if item.find('a') else None
+
+        # Criar links camuflados
+        proxy_img_url = f"{request.url_root}image/{img_url.replace(BASE_URL, '')}" if img_url else None
+        proxy_show_url = f"{request.url_root}show/{show_url.replace(BASE_URL, '')}" if show_url else None
+
+        shows.append({
+            "title": title,
+            "alt": img_alt,
+            "image": proxy_img_url,
+            "url": proxy_show_url,
+            "year": year
+        })
+
+    return jsonify(shows)
+
+@app.route('/show/<path:show_path>', methods=['GET'])
+def show_proxy(show_path):
+    original_url = f"{BASE_URL}{show_path}"
+    response = requests.get(original_url, headers={'User-Agent': 'Mozilla/5.0'})
+
+    if response.status_code != 200:
+        return jsonify({"error": "Conteúdo não encontrado."}), 404
+
+    return Response(response.content, content_type=response.headers.get('Content-Type'))
+
+
 @app.route('/image/<path:image_path>')
 def image_proxy(image_path):
     original_url = f"{BASE_URL}{image_path}"
