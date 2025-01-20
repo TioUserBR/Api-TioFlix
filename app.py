@@ -7,7 +7,7 @@ app = Flask(__name__)
 BASE_URL = "https://q1n.net/"
 HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
-@app.route('/api/newEpList', methods=['GET'])
+@app.route('/api/episodes', methods=['GET'])
 def episodes_api():
     url = f"{BASE_URL}e/"
     response = requests.get(url, headers=HEADERS)
@@ -22,11 +22,12 @@ def episodes_api():
     if content:
         archive = content.find('div', id='archive-content')
         if archive:
-            for episode in archive.find_all('article', class_='item se episodes')[:50]:  # Limite de 10 itens
+            for episode in archive.find_all('article', class_='item se episodes')[:10]:  # Limite de 10 itens
                 title = episode.find('h3').text.strip()
                 episode_url = episode.find('a')['href']
                 img_tag = episode.find('img')
                 img_url = img_tag['src'] if img_tag else None
+                img_alt = img_tag['alt'] if img_tag and 'alt' in img_tag.attrs else None
 
                 quality = episode.find('span', class_='quality').text.strip() if episode.find('span', class_='quality') else 'N/A'
 
@@ -35,6 +36,7 @@ def episodes_api():
 
                 episodes.append({
                     'title': title,
+                    'alt': img_alt,
                     'url': proxy_episode_url,
                     'image': proxy_img_url,
                     'quality': quality
